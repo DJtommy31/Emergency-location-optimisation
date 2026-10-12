@@ -266,17 +266,17 @@ function find_best_facilities(distances,population)
                     )
 
 
-                total_distance += closest_distance*population[node]
+                weighted_time += closest_distance*population[node]
 
             end
 
 
             # Keep the best pair found so far
 
-            if total_distance < best_weighted_time
+            if weighted_time < best_weighted_time
 
                 best_weighted_time =
-                    total_distance
+                    weighted_time
 
                 best_facility_1 = facility1
                 best_facility_2 = facility2
@@ -311,7 +311,7 @@ function main()
 
     facility1,
     facility2,
-    total_distance =
+    weighted_time =
         find_best_facilities(distances, population)
 
 
@@ -333,11 +333,11 @@ function main()
 
     @printf(
         "Total population-weighted response score: %.0f \n",
-        total_distance
+        weighted_time
     )
     @printf(
         "This gives an average response time per person of %.1f seconds\n",
-        total_distance/sum(population)
+        weighted_time/sum(population)
     )
 
 
