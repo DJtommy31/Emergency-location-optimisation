@@ -1,7 +1,8 @@
 # Emergency Facility Location
 #
-# Finds the two nodes that minimise the total shortest travel time
-# from every usable node to its nearest emergency facility.
+# Finds the two facility locations that minimise the total
+# population-weighted shortest response time from each usable node
+# to its nearest emergency facility.
 #
 # Map movement times:
 #   Vertical movement   = 15 seconds
@@ -31,7 +32,8 @@ population_grid = [
     3 0 0 0 4;
     3 1 0 4 2
 ]
-# The section below is no longer needed as the population grid marks them as zeros already.
+# The section below works in conjunction with the population grid 
+# as while other cells may have a population of 0 these cells are non-traversable.
 # Cells occupied by the abandoned mine
 mine_cells = Set([
     (3, 2),
@@ -60,7 +62,7 @@ function create_nodes()
 
             if !((row, col) in blocked_cells)
                 push!(nodes, (row, col))
-                push!(populations, population_grid[row, col])
+                push!(population, population_grid[row, col])
             end
 
         end
@@ -226,14 +228,14 @@ end
 
 
 ## FIND BEST TWO FACILITY LOCATIONS
-function find_best_facilities(distances)
+function find_best_facilities(distances,population)
 
     n = size(distances, 1)
 
     best_facility_1 = 0
     best_facility_2 = 0
 
-    best_total_distance = Inf
+    best_weighted_time = Inf
 
 
     # Try every possible pair of facility locations
@@ -242,7 +244,7 @@ function find_best_facilities(distances)
 
         for facility2 in facility1+1:n
 
-            total_distance = 0.0
+            weighted_time = 0.0
 
 
             # Every node is serviced by whichever
@@ -271,9 +273,9 @@ function find_best_facilities(distances)
 
             # Keep the best pair found so far
 
-            if total_distance < best_total_distance
+            if total_distance < best_weighted_time
 
-                best_total_distance =
+                best_weighted_time =
                     total_distance
 
                 best_facility_1 = facility1
@@ -289,7 +291,7 @@ function find_best_facilities(distances)
     return (
         best_facility_1,
         best_facility_2,
-        best_total_distance
+        best_weighted_time
     )
 end
 
@@ -310,7 +312,7 @@ function main()
     facility1,
     facility2,
     total_distance =
-        find_best_facilities(distances)
+        find_best_facilities(distances, population)
 
 
     println("BEST EMERGENCY FACILITY LOCATIONS")
@@ -330,8 +332,12 @@ function main()
 
 
     @printf(
-        "Total distance to nearest facilities: %.0f seconds\n",
+        "Total population-weighted response score: %.0f \n",
         total_distance
+    )
+    @printf(
+        "This gives an average response time per person of %.1f seconds\n",
+        total_distance/sum(population)
     )
 
 
@@ -380,7 +386,3 @@ end
 
 main()
 
-
-## KAT IS HERE
-# KATS BACK
-# Dylan is unimpressed
