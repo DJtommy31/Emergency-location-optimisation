@@ -9,7 +9,7 @@
 #   Horizontal movement = 20 seconds
 
 using Printf
-
+using Plots
 const VERTICAL_TIME = 15.0
 const HORIZONTAL_TIME = 20.0
 
@@ -295,7 +295,194 @@ function find_best_facilities(distances,population)
     )
 end
 
+## PLOT RESPONSE TIMES
 
+## PLOT RESPONSE TIMES
+
+function plot_response_map(
+    nodes,
+    distances,
+    facility1,
+    facility2
+)
+
+    # Grid used to store the response time
+    # for each usable location
+    response_grid = fill(NaN, ROWS, COLS)
+
+
+    # Fill the grid with response times
+    for node in 1:length(nodes)
+
+        row, col = nodes[node]
+
+        distance1 =
+            distances[facility1, node]
+
+        distance2 =
+            distances[facility2, node]
+
+        response_grid[row, col] =
+            min(distance1, distance2)
+
+    end
+
+
+    # Create heatmap
+    response_plot = heatmap(
+        1:COLS,
+        1:ROWS,
+        response_grid,
+
+        yflip = true,
+        aspect_ratio = :equal,
+
+        xlabel = "Column",
+        ylabel = "Row",
+
+        title =
+            "Emergency Facility Response Times",
+
+        colorbar_title =
+            "Response Time (seconds)",
+
+        color = :viridis,
+
+        xticks = 1:COLS,
+        yticks = 1:ROWS,
+
+        size = (700, 900)
+    )
+
+
+    # Mark blocked cells
+    for (row, col) in blocked_cells
+
+        scatter!(
+            response_plot,
+            [col],
+            [row],
+
+            marker = :square,
+            markersize = 22,
+
+            markercolor = :grey,
+            markerstrokecolor = :black,
+
+            label = false
+        )
+
+        annotate!(
+            response_plot,
+            col,
+            row,
+            text(
+                "BLOCKED",
+                7,
+                :black
+            )
+        )
+
+    end
+
+
+    # Add node numbers and response times
+    for node in 1:length(nodes)
+
+        row, col = nodes[node]
+
+        response_time =
+            response_grid[row, col]
+
+
+        # Choose text colour based on background
+        if response_time <= 45
+
+            text_colour = :white
+
+        else
+
+            text_colour = :black
+
+        end
+
+
+        # Normal nodes
+        if node != facility1 &&
+           node != facility2
+
+            label =
+                @sprintf(
+                    "N%d\n%.0fs",
+                    node,
+                    response_time
+                )
+
+            annotate!(
+                response_plot,
+                col,
+                row,
+                text(
+                    label,
+                    7,
+                    text_colour
+                )
+            )
+
+        end
+
+    end
+
+
+    # Facility 1
+    facility1_row,
+    facility1_col =
+        nodes[facility1]
+
+    scatter!(
+        response_plot,
+        [facility1_col],
+        [facility1_row],
+
+        marker = :star5,
+        markersize = 14,
+
+        markercolor = :red,
+        markerstrokecolor = :white,
+
+        label = "Facility 1"
+    )
+
+
+    # Facility 2
+    facility2_row,
+    facility2_col =
+        nodes[facility2]
+
+    scatter!(
+        response_plot,
+        [facility2_col],
+        [facility2_row],
+
+        marker = :star5,
+        markersize = 14,
+
+        markercolor = :cyan,
+        markerstrokecolor = :white,
+
+        label = "Facility 2"
+    )
+
+
+    display(response_plot)
+
+
+    savefig(
+        response_plot,
+        "facility_response_map.png"
+    )
+
+end
 
 ## MAIN PROGRAM
 
@@ -380,6 +567,12 @@ function main()
         end
 
     end
+    plot_response_map(
+    nodes,
+    distances,
+    facility1,
+    facility2
+    )
 
 end
 
